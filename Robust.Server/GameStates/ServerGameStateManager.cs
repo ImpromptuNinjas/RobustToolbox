@@ -51,6 +51,7 @@ namespace Robust.Server.GameStates
 
             _configurationManager.RegisterCVar("net.pvs", true, CVar.ARCHIVE);
             _configurationManager.RegisterCVar("net.maxupdaterange", 12.5f, CVar.ARCHIVE);
+            _configurationManager.RegisterCVar("net.maxupdaterange", 12.5f, CVar.ARCHIVE);
         }
 
         private void HandleClientConnected(object sender, NetChannelArgs e)
@@ -118,7 +119,11 @@ namespace Robust.Server.GameStates
 
             foreach (var channel in _networkManager.Channels)
             {
-                var session = _playerManager.GetSessionByChannel(channel);
+                if (!_playerManager.TryGetSessionByChannel(channel, out var session))
+                {
+                    continue;
+                }
+
                 if (session == null || session.Status != SessionStatus.InGame)
                 {
                     // client still joining, maybe iterate over sessions instead?

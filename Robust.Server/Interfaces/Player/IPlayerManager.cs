@@ -53,6 +53,8 @@ namespace Robust.Server.Interfaces.Player
 
         bool TryGetSessionById(NetSessionId sessionId, out IPlayerSession session);
 
+        bool TryGetSessionByChannel(INetChannel channel, out IPlayerSession session);
+
         /// <summary>
         ///     Checks to see if a PlayerIndex is a valid session.
         /// </summary>
@@ -69,5 +71,6 @@ namespace Robust.Server.Interfaces.Player
         List<IPlayerSession> GetPlayersBy(Func<IPlayerSession, bool> predicate);
         List<IPlayerSession> GetAllPlayers();
         List<PlayerState> GetPlayerStates(GameTick fromTick);
+
     }
 }

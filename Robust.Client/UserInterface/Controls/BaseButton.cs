@@ -288,7 +288,7 @@ namespace Robust.Client.UserInterface.Controls
             {
                 if (button != this && button.Pressed)
                 {
-                    button._pressed = false;
+                    button.Pressed = false;
                     button.DrawModeChanged();
                 }
             }

@@ -94,6 +94,7 @@ namespace Robust.Shared.GameObjects.Components.Map
     [Serializable, NetSerializable]
     internal class MapGridComponentState : ComponentState
     {
+        public sealed override uint NetID => NetIDs.MAP_GRID;
         /// <summary>
         ///     Index of the grid this component is linked to.
         /// </summary>
@@ -104,7 +105,6 @@ namespace Robust.Shared.GameObjects.Components.Map
         /// </summary>
         /// <param name="gridIndex">Index of the grid this component is linked to.</param>
         public MapGridComponentState(GridId gridIndex)
-            : base(NetIDs.MAP_GRID)
         {
             GridIndex = gridIndex;
         }

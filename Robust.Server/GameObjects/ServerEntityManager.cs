@@ -49,7 +49,7 @@ namespace Robust.Server.GameObjects
         public float MaxUpdateRange => _maxUpdateRangeCache
             ??= _configurationManager.GetCVar<float>("net.maxupdaterange");
 
-        private int _nextServerEntityUid = (int) EntityUid.FirstUid;
+        private int _nextServerEntityUid = (int)EntityUid.FirstUid;
 
         private readonly List<(GameTick tick, EntityUid uid)> _deletionHistory = new List<(GameTick, EntityUid)>();
 
@@ -69,7 +69,7 @@ namespace Robust.Server.GameObjects
         public override IEntity CreateEntityUninitialized(string prototypeName, GridCoordinates coordinates)
         {
             var newEntity = CreateEntity(prototypeName);
-            if (coordinates.GridID != GridId.Invalid)
+            if(coordinates.GridID != GridId.Invalid)
             {
                 var gridEntityId = _mapManager.GetGrid(coordinates.GridID).GridEntityId;
                 newEntity.Transform.AttachParent(GetEntity(gridEntityId));
@@ -103,11 +103,11 @@ namespace Robust.Server.GameObjects
         /// <inheritdoc />
         public override IEntity SpawnEntity(string protoName, GridCoordinates coordinates)
         {
-            if (coordinates.GridID == GridId.Invalid)
+            if(coordinates.GridID == GridId.Invalid)
                 throw new InvalidOperationException($"Tried to spawn entity {protoName} onto invalid grid.");
 
             var entity = CreateEntityUninitialized(protoName, coordinates);
-            InitializeAndStartEntity((Entity) entity);
+            InitializeAndStartEntity((Entity)entity);
             var grid = _mapManager.GetGrid(coordinates.GridID);
             if (_pauseManager.IsMapInitialized(grid.ParentMapId))
             {
@@ -121,7 +121,7 @@ namespace Robust.Server.GameObjects
         public override IEntity SpawnEntity(string protoName, MapCoordinates coordinates)
         {
             var entity = CreateEntityUninitialized(protoName, coordinates);
-            InitializeAndStartEntity((Entity) entity);
+            InitializeAndStartEntity((Entity)entity);
             return entity;
         }
 
@@ -129,7 +129,7 @@ namespace Robust.Server.GameObjects
         public override IEntity SpawnEntityNoMapInit(string protoName, GridCoordinates coordinates)
         {
             var newEnt = CreateEntityUninitialized(protoName, coordinates);
-            InitializeAndStartEntity((Entity) newEnt);
+            InitializeAndStartEntity((Entity)newEnt);
             return newEnt;
         }
 
@@ -431,7 +431,7 @@ namespace Robust.Server.GameObjects
                         entityStates.Add(new EntityState(uid,
                             new ComponentChanged[]
                             {
-                                new ComponentChanged(false, NetIDs.TRANSFORM, "Transform")
+                                new ComponentChanged(false, NetIDs.TRANSFORM)
                             },
                             new ComponentState[]
                             {
@@ -836,12 +836,12 @@ namespace Robust.Server.GameObjects
 
         void IServerEntityManagerInternal.FinishEntityInitialization(IEntity entity)
         {
-            InitializeEntity((Entity) entity);
+            InitializeEntity((Entity)entity);
         }
 
         void IServerEntityManagerInternal.FinishEntityStartup(IEntity entity)
         {
-            StartEntity((Entity) entity);
+            StartEntity((Entity)entity);
         }
 
         /// <inheritdoc />
@@ -882,7 +882,7 @@ namespace Robust.Server.GameObjects
                 {
                     // Can't be null since it's returned by GetNetComponents
                     // ReSharper disable once PossibleInvalidOperationException
-                    changed.Add(ComponentChanged.Added(comp.NetID.Value, comp.Name));
+                    changed.Add(ComponentChanged.Added(comp.NetID.Value));
                 }
                 else if (comp.Deleted && comp.LastModifiedTick >= fromTick)
                 {

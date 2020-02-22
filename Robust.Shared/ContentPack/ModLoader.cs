@@ -136,7 +136,7 @@ namespace Robust.Shared.ContentPack
             if (_useLoadContext)
             {
                 assembly = _loadContext.LoadFromAssemblyPath(diskPath);
-            }
+        }
             else
             {
                 assembly = Assembly.LoadFrom(diskPath);
@@ -160,7 +160,7 @@ namespace Robust.Shared.ContentPack
                 var entryPointInstance = (T) Activator.CreateInstance(entryPoint)!;
                 if (_testingCallbacks != null)
                 {
-                    entryPointInstance.SetTestingCallbacks(_testingCallbacks);
+                entryPointInstance.SetTestingCallbacks(_testingCallbacks);
                 }
                 mod.EntryPoints.Add(entryPointInstance);
             }

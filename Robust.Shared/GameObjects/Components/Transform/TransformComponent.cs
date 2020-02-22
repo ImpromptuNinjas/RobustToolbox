@@ -124,11 +124,11 @@ namespace Robust.Shared.GameObjects.Components.Transform
                 if (value != null)
                 {
                     AttachParent(value);
-                }
+            }
                 else
                 {
                     DetachParent();
-                }
+        }
             }
         }
 
@@ -406,7 +406,6 @@ namespace Robust.Shared.GameObjects.Components.Transform
 
             WorldPosition = mapPos.Position;
 
-            Dirty();
         }
 
         private void DetachParentToNull()
@@ -757,6 +756,7 @@ namespace Robust.Shared.GameObjects.Components.Transform
         [Serializable, NetSerializable]
         protected internal class TransformComponentState : ComponentState
         {
+            public sealed override uint NetID => NetIDs.TRANSFORM;
             /// <summary>
             ///     Current parent entity of this entity.
             /// </summary>
@@ -779,7 +779,6 @@ namespace Robust.Shared.GameObjects.Components.Transform
             /// <param name="rotation">Current direction offset of this entity.</param>
             /// <param name="parentId">Current parent transform of this entity.</param>
             public TransformComponentState(Vector2 localPosition, Angle rotation, EntityUid? parentId)
-                : base(NetIDs.TRANSFORM)
             {
                 LocalPosition = localPosition;
                 Rotation = rotation;

@@ -92,7 +92,7 @@ namespace Robust.Client.GameObjects
             foreach (var kvStates in toApply)
             {
                 var ent = kvStates.Key;
-                var entity = (Entity) ent;
+                var entity = (Entity)ent;
                 HandleEntityState(entity.EntityManager.ComponentManager, entity, kvStates.Value.Item1,
                     kvStates.Value.Item2);
             }
@@ -117,9 +117,9 @@ namespace Robust.Client.GameObjects
                 try
                 {
 #endif
-                    InitializeEntity(entity);
+                InitializeEntity(entity);
 #if EXCEPTION_TOLERANCE
-                }
+            }
                 catch (Exception e)
                 {
                     Logger.ErrorS("state", $"Server entity threw in Init: uid={entity.Uid}, proto={entity.Prototype}\n{e}");
@@ -137,9 +137,9 @@ namespace Robust.Client.GameObjects
                 try
                 {
 #endif
-                    StartEntity(entity);
+                StartEntity(entity);
 #if EXCEPTION_TOLERANCE
-                }
+            }
                 catch (Exception e)
                 {
                     Logger.ErrorS("state", $"Server entity threw in Start: uid={entity.Uid}, proto={entity.Prototype}\n{e}");
@@ -160,7 +160,7 @@ namespace Robust.Client.GameObjects
             foreach (var entity in brokenEnts)
             {
                 entity.Delete();
-            }
+        }
 #endif
 
             return created;
@@ -204,7 +204,7 @@ namespace Robust.Client.GameObjects
         public override IEntity SpawnEntity(string protoName, GridCoordinates coordinates)
         {
             var newEnt = CreateEntityUninitialized(protoName, coordinates);
-            InitializeAndStartEntity((Entity) newEnt);
+            InitializeAndStartEntity((Entity)newEnt);
             UpdateEntityTree(newEnt);
             return newEnt;
         }
@@ -213,7 +213,7 @@ namespace Robust.Client.GameObjects
         public override IEntity SpawnEntity(string protoName, MapCoordinates coordinates)
         {
             var entity = CreateEntityUninitialized(protoName, coordinates);
-            InitializeAndStartEntity((Entity) entity);
+            InitializeAndStartEntity((Entity)entity);
             UpdateEntityTree(entity);
             return entity;
         }
@@ -230,13 +230,24 @@ namespace Robust.Client.GameObjects
             return new EntityUid(_nextClientEntityUid++);
         }
 
+        public override IEntity GetEntity(EntityUid uid)
+        {
+            if (Entities.TryGetValue(uid, out var ent))
+            {
+                return ent;
+            }
+
+            Logger.ErrorS("entity", $"Could not find entity {uid} on this client.");
+            return null;
+        }
+
         private void HandleEntityState(IComponentManager compMan, IEntity entity, EntityState curState,
             EntityState nextState)
         {
             var compStateWork = new Dictionary<uint, (ComponentState curState, ComponentState nextState)>();
             var entityUid = entity.Uid;
 
-            if (curState?.ComponentChanges != null)
+            if(curState?.ComponentChanges != null)
             {
                 foreach (var compChange in curState.ComponentChanges)
                 {
@@ -259,7 +270,7 @@ namespace Robust.Client.GameObjects
                 }
             }
 
-            if (curState?.ComponentStates != null)
+            if(curState?.ComponentStates != null)
             {
                 foreach (var compState in curState.ComponentStates)
                 {
@@ -267,7 +278,7 @@ namespace Robust.Client.GameObjects
                 }
             }
 
-            if (nextState?.ComponentStates != null)
+            if(nextState?.ComponentStates != null)
             {
                 foreach (var compState in nextState.ComponentStates)
                 {

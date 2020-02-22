@@ -118,7 +118,7 @@ namespace Robust.Shared.GameObjects
         /// </summary>
         /// <param name="uid"></param>
         /// <returns>Entity or null if entity id doesn't exist</returns>
-        public IEntity GetEntity(EntityUid uid)
+        public virtual IEntity GetEntity(EntityUid uid)
         {
             return Entities[uid];
         }
@@ -593,7 +593,7 @@ namespace Robust.Shared.GameObjects
 
         public virtual void Update()
         {
-        }
+    }
 
     }
 

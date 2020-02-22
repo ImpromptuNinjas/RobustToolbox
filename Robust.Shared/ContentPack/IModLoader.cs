@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Robust.Shared.Interfaces.Resources;
 using Robust.Shared.Timing;
 
@@ -46,5 +48,8 @@ namespace Robust.Shared.ContentPack
         void SetModuleBaseCallbacks(ModuleTestingCallbacks testingCallbacks);
 
         void SetUseLoadContext(bool useLoadContext);
+
+        IEnumerable<Assembly> GetGameAssemblies();
+
     }
 }
