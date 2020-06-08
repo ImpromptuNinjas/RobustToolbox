@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using ICSharpCode.SharpZipLib.Zip;
 using Robust.Shared.Log;
 using Robust.Shared.Utility;
@@ -64,9 +65,9 @@ namespace Robust.Shared.ContentPack
             /// <inheritdoc />
             public IEnumerable<ResourcePath> FindFiles(ResourcePath path)
             {
-                foreach (var o in _zip)
+                foreach (var zipEntry in _zip.Cast<ZipEntry>())
                 {
-                    if (o is ZipEntry zipEntry && zipEntry.IsFile && zipEntry.Name.StartsWith(path.ToRootedPath().ToString()))
+                    if (zipEntry.IsFile && zipEntry.Name.StartsWith(path.ToRootedPath().ToString()))
                     {
                         yield return new ResourcePath(zipEntry.Name).ToRelativePath();
                     }
@@ -75,11 +76,9 @@ namespace Robust.Shared.ContentPack
 
             public IEnumerable<string> GetRelativeFilePaths()
             {
-                foreach (ZipEntry zipEntry in _zip)
+                foreach (var zipEntry in _zip.Cast<ZipEntry>())
                 {
-                    if (zipEntry == null) continue;
-
-                    if (zipEntry.IsFile)
+                    if (zipEntry!.IsFile)
                     {
                         yield return new ResourcePath(zipEntry.Name).ToRootedPath().ToString();
                     }
