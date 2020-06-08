@@ -67,7 +67,22 @@ namespace Robust.Shared.ContentPack
                 foreach (var o in _zip)
                 {
                     if (o is ZipEntry zipEntry && zipEntry.IsFile && zipEntry.Name.StartsWith(path.ToRootedPath().ToString()))
+                    {
                         yield return new ResourcePath(zipEntry.Name).ToRelativePath();
+                    }
+                }
+            }
+
+            public IEnumerable<string> GetRelativeFilePaths()
+            {
+                foreach (ZipEntry zipEntry in _zip)
+                {
+                    if (zipEntry == null) continue;
+
+                    if (zipEntry.IsFile)
+                    {
+                        yield return new ResourcePath(zipEntry.Name).ToRootedPath().ToString();
+                    }
                 }
             }
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Prometheus;
 using Robust.Server.Interfaces;
 using Robust.Server.Interfaces.Player;
@@ -362,18 +363,25 @@ namespace Robust.Server.Player
             Dirty();
         }
 
-        private void HandleWelcomeMessageReq(MsgServerInfoReq message)
+        private async void HandleWelcomeMessageReq(MsgServerInfoReq message)
         {
-            var session = GetSessionByChannel(message.MsgChannel);
-
-            var netMsg = message.MsgChannel.CreateNetMessage<MsgServerInfo>();
+            var channel = message.MsgChannel;
+            var netMsg = channel.CreateNetMessage<MsgServerInfo>();
 
             netMsg.ServerName = _baseServer.ServerName;
             netMsg.ServerMaxPlayers = _baseServer.MaxPlayers;
             netMsg.TickRate = _timing.TickRate;
+
+            IPlayerSession session;
+            while (!TryGetSessionByChannel(channel, out session))
+            {
+                await Task.Delay(10);
+                if (!channel.IsConnected) return;
+            }
+
             netMsg.PlayerSessionId = session.SessionId;
 
-            message.MsgChannel.SendMessage(netMsg);
+            channel.SendMessage(netMsg);
         }
 
         private void HandlePlayerListReq(MsgPlayerListReq message)
