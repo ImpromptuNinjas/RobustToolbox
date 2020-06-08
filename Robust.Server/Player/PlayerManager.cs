@@ -95,15 +95,16 @@ namespace Robust.Server.Player
         }
 
         IPlayerSession IPlayerManager.GetSessionByChannel(INetChannel channel) => GetSessionByChannel(channel);
+
         public bool TryGetSessionByChannel(INetChannel channel, out IPlayerSession session)
         {
             _sessionsLock.EnterReadLock();
             try
             {
                 // Should only be one session per client. Returns that session, in theory.
-                if (_sessions.TryGetValue(channel.SessionId, out var concrete))
+                if (_sessions.TryGetValue(channel.SessionId, out var sessionImpl))
                 {
-                    session = concrete;
+                    session = sessionImpl;
                     return true;
                 }
 
@@ -123,27 +124,6 @@ namespace Robust.Server.Player
             {
                 // Should only be one session per client. Returns that session, in theory.
                 return _sessions[channel.SessionId];
-            }
-            finally
-            {
-                _sessionsLock.ExitReadLock();
-            }
-        }
-
-        public bool TryGetSessionByChannel(INetChannel channel, out IPlayerSession session)
-        {
-            _sessionsLock.EnterReadLock();
-            try
-            {
-                // Should only be one session per client. Returns that session, in theory.
-                if (_sessions.TryGetValue(channel.SessionId, out var sessionImpl))
-                {
-                    session = sessionImpl;
-                    return true;
-                }
-
-                session = null;
-                return false;
             }
             finally
             {

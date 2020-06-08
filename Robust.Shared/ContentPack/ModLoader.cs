@@ -16,15 +16,21 @@ using Robust.Shared.Utility;
 
 namespace Robust.Shared.ContentPack
 {
+
     /// <summary>
     ///     Run levels of the Content entry point.
     /// </summary>
     public enum ModRunLevel
     {
+
         Error = 0,
+
         Init = 1,
+
         PostInit = 2,
+
         PreInit = 3,
+
     }
 
     /// <summary>
@@ -32,6 +38,7 @@ namespace Robust.Shared.ContentPack
     /// </summary>
     public enum ModUpdateLevel
     {
+
         /// <summary>
         ///     This update is called before the main state manager on process frames.
         /// </summary>
@@ -51,6 +58,7 @@ namespace Robust.Shared.ContentPack
         ///     This update is called after the main state manager on render frames, thus only applies to the client.
         /// </summary>
         FramePostEngine,
+
     }
 
     /// <summary>
@@ -58,8 +66,11 @@ namespace Robust.Shared.ContentPack
     /// </summary>
     internal class ModLoader : IModLoader, IDisposable
     {
+
         [Dependency] private readonly IReflectionManager _reflectionManager = default!;
+
         [Dependency] private readonly IResourceManager _resourceManager = default!;
+
         [Dependency] private readonly ILogManager _logManager = default!;
 
         private ModuleTestingCallbacks? _testingCallbacks;
@@ -93,6 +104,9 @@ namespace Robust.Shared.ContentPack
         {
             _useLoadContext = useLoadContext;
         }
+
+        public IEnumerable<Assembly> GetGameAssemblies()
+            => _reflectionManager.Assemblies;
 
         public virtual void LoadGameAssembly<T>(Stream assembly, Stream? symbols = null)
             where T : GameShared
@@ -136,11 +150,12 @@ namespace Robust.Shared.ContentPack
             if (_useLoadContext)
             {
                 assembly = _loadContext.LoadFromAssemblyPath(diskPath);
-        }
+            }
             else
             {
                 assembly = Assembly.LoadFrom(diskPath);
             }
+
             InitMod<T>(assembly);
         }
 
@@ -160,8 +175,9 @@ namespace Robust.Shared.ContentPack
                 var entryPointInstance = (T) Activator.CreateInstance(entryPoint)!;
                 if (_testingCallbacks != null)
                 {
-                entryPointInstance.SetTestingCallbacks(_testingCallbacks);
+                    entryPointInstance.SetTestingCallbacks(_testingCallbacks);
                 }
+
                 mod.EntryPoints.Add(entryPointInstance);
             }
 
@@ -322,6 +338,7 @@ namespace Robust.Shared.ContentPack
         /// </summary>
         private class ModInfo
         {
+
             public ModInfo(Assembly gameAssembly)
             {
                 GameAssembly = gameAssembly;
@@ -329,7 +346,11 @@ namespace Robust.Shared.ContentPack
             }
 
             public Assembly GameAssembly { get; }
+
             public List<GameShared> EntryPoints { get; }
+
         }
+
     }
+
 }

@@ -53,8 +53,6 @@ namespace Robust.Server.Interfaces.Player
 
         bool TryGetSessionById(NetSessionId sessionId, out IPlayerSession session);
 
-        bool TryGetSessionByChannel(INetChannel channel, out IPlayerSession session);
-
         /// <summary>
         ///     Checks to see if a PlayerIndex is a valid session.
         /// </summary>
