@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -9,10 +10,12 @@ using System.Reflection.Emit;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using ImpromptuNinjas.ZStd;
 using Lidgren.Network;
 using Prometheus;
 using Robust.Shared.Configuration;
 using Robust.Shared.Interfaces.Configuration;
+using Robust.Shared.Interfaces.Log;
 using Robust.Shared.Interfaces.Network;
 using Robust.Shared.Interfaces.Serialization;
 using Robust.Shared.IoC;
@@ -852,6 +855,69 @@ namespace Robust.Shared.Network
             _blankNetMsgFunctions.Add(type, @delegate);
         }
 
+#if ZSTD_BUILD_DICTIONARY
+        private static CancellationTokenSource _zstdCts = new CancellationTokenSource();
+
+        private static ZStdDictionaryBuilder _zstdDictBuilder = new ZStdDictionaryBuilder(512 * 1024);
+
+        private static DictionaryTrainingParameters _zstdDictTrainParams = new DictionaryTrainingParameters
+        {
+            StandardParameters =
+            {
+                CompressionLevel = 6,
+                NotificationLevel = 2
+            },
+            DmerSize = 8,
+            SamplePortion = 1,
+            ThreadCount = 1,
+            Steps = 0
+        };
+
+        private static readonly BlockingCollection<ArraySegment<byte>> ZstdSampleBuffer
+            = new BlockingCollection<ArraySegment<byte>>();
+
+        public static readonly Thread ZstdDictThread;
+
+        public static ref ZStdDictionaryBuilder ZstdDictBuilder => ref _zstdDictBuilder;
+
+        public static ref DictionaryTrainingParameters ZstdDictTrainParams => ref _zstdDictTrainParams;
+
+        public static long ZstdSampledBytes = 0;
+
+        private static async IAsyncEnumerable<ArraySegment<byte>> Sampler()
+        {
+            Logger.DebugS("zstd", "Dictionary training started.");
+            foreach (var sample in ZstdSampleBuffer.GetConsumingEnumerable(_zstdCts.Token))
+            {
+                ZstdSampledBytes += sample.Count;
+                yield return sample;
+            }
+
+            Logger.DebugS("zstd", "Dictionary training ended.");
+            //ZstdSampleBuffer.Dispose();
+        }
+
+        public static void ZstdDictStopSampling()
+            => ZstdSampleBuffer.CompleteAdding();
+
+        static NetManager()
+        {
+            var logMgr = IoCManager.Resolve<ILogManager>();
+            ZstdDictThread = new Thread(() =>
+            {
+                IoCManager.InitThread();
+                IoCManager.RegisterInstance<ILogManager>(logMgr);
+                IoCManager.BuildGraph();
+                _zstdDictBuilder.Train(Sampler);
+            })
+            {
+                Name = "ZStd Dictionary Training Thread",
+                IsBackground = true
+            };
+            ZstdDictThread.Start();
+        }
+#endif
+
         private NetOutgoingMessage BuildMessage(NetMessage message, NetPeer peer)
         {
             var packet = peer.CreateMessage(4);
@@ -862,6 +928,15 @@ namespace Robust.Shared.Network
 
             packet.Write((byte) msgId);
             message.WriteToBuffer(packet);
+#if ZSTD_BUILD_DICTIONARY
+            if (!ZstdSampleBuffer.IsAddingCompleted)
+            {
+                var sample = new ArraySegment<byte>(packet.Data, (int) packet.Position, packet.LengthBytes);
+                var copy = new byte[packet.LengthBytes];
+                sample.CopyTo(copy);
+                ZstdSampleBuffer.Add(copy);
+            }
+#endif
             return packet;
         }
 

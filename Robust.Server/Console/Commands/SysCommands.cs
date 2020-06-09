@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime;
 using System.Text;
 using Robust.Server.Interfaces;
@@ -210,6 +211,50 @@ namespace Robust.Server.Console.Commands
         }
 
     }
+
+#if ZSTD_BUILD_DICTIONARY
+    internal class ZstdDictInfoCommand : IClientCommand
+    {
+
+        public string Command => "zstd_dict_info";
+
+        public string Description => "Reports status of the current ZStd dictionary.";
+
+        public string Help => "zstd_dict_info";
+
+        public void Execute(IConsoleShell console, IPlayerSession player, params string[] args)
+        {
+            var sampled = NetManager.ZstdSampledBytes;
+            var completion = 10d * NetManager.ZstdDictBuilder.Size.ToUInt64();
+            console.SendText(player,$"zstd dictionary sampling status: {sampled / completion:P2} {sampled}/{completion}");
+        }
+
+    }
+    internal class ZstdDictSaveCommand : IClientCommand
+    {
+
+        public string Command => "zstd_dict_save";
+
+        public string Description => "Export the current ZStd dictionary.";
+
+        public string Help => "zstd_dict_save";
+
+        public void Execute(IConsoleShell console, IPlayerSession player, params string[] args)
+        {
+            console.SendText(player,"exporting server zstd dictionary");
+            var fn = Path.Combine( Environment.CurrentDirectory,  "server.zstd" );
+            NetManager.ZstdDictStopSampling();
+            NetManager.ZstdDictThread.Join();
+            using (var fs = File.OpenWrite(fn))
+            {
+                NetManager.ZstdDictBuilder.WriteTo(fs);
+            }
+
+            console.SendText(player,$"exported to {fn}");
+        }
+
+    }
+#endif
 
     internal sealed class MemCommand : IClientCommand
     {
