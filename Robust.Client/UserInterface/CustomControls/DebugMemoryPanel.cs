@@ -66,6 +66,7 @@ Total Allocated: {FormatBytes(allocated)}
 Collections: {GC.CollectionCount(0)} {GC.CollectionCount(1)} {GC.CollectionCount(2)}
 Alloc Rate: {FormatBytes(CalculateAllocRate())} / frame
 Fragmented: {FormatBytes(info.FragmentedBytes)}
+GC Cur Delay: {_gameController.ImposedGcDelayLatest:s\.fffffff}s
 GC Max Delay: {_gameController.ImposedGcDelayMax:s\.fffffff}s
 GC Min Delay: {_gameController.ImposedGcDelayMin:s\.fffffff}s
 GC Avg Delay: {_gameController.ImposedGcDelayAverage:s\.fffffff}s
