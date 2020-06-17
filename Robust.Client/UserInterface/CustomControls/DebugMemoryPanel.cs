@@ -2,7 +2,9 @@
 using System.Linq;
 using System.Runtime;
 using Robust.Client.Graphics.Drawing;
+using Robust.Client.Interfaces;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.IoC;
 using Robust.Shared.Maths;
 using Robust.Shared.Timing;
 
@@ -10,6 +12,8 @@ namespace Robust.Client.UserInterface.CustomControls
 {
     internal sealed class DebugMemoryPanel : PanelContainer
     {
+
+        private readonly GameController _gameController = default!;
         private readonly Label _label;
 
         private readonly long[] _allocDeltas = new long[60];
@@ -18,6 +22,7 @@ namespace Robust.Client.UserInterface.CustomControls
 
         public DebugMemoryPanel()
         {
+            _gameController = (GameController) IoCManager.Resolve<IGameController>();
             // Disable this panel outside .NET Core since it's useless there.
 #if !NETCOREAPP
             Visible = false;
@@ -60,7 +65,12 @@ Last Heap Size: {FormatBytes(info.HeapSizeBytes)}
 Total Allocated: {FormatBytes(allocated)}
 Collections: {GC.CollectionCount(0)} {GC.CollectionCount(1)} {GC.CollectionCount(2)}
 Alloc Rate: {FormatBytes(CalculateAllocRate())} / frame
-Fragmented: {FormatBytes(info.FragmentedBytes)}";
+Fragmented: {FormatBytes(info.FragmentedBytes)}
+GC Max Delay: {_gameController.ImposedGcDelayMax:s\.fffffff}s
+GC Min Delay: {_gameController.ImposedGcDelayMin:s\.fffffff}s
+GC Avg Delay: {_gameController.ImposedGcDelayAverage:s\.fffffff}s
+GC Avg Large Delay: {_gameController.ImposedGcLargeDelayAverage:s\.fffffff}s
+";
 #else
             return "Memory information needs .NET Core";
 #endif

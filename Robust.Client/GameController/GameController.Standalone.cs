@@ -5,6 +5,7 @@ using Robust.Shared.Interfaces.Timing;
 using Robust.Shared.IoC;
 using Robust.Shared.Log;
 using Robust.Shared.Timing;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Robust.Client
 {
@@ -72,6 +73,27 @@ namespace Robust.Client
 
         private int _renderNoGcRegionSize = 4 * 1024;
 
+        private long _imposedGcDelayTicks = 0;
+        private long _imposedGcDelayTicksMin = long.MaxValue;
+        private long _imposedGcDelayTicksMax = 0;
+        private long _imposedGcEvents = 0;
+
+        private long _imposedGcLargeDelayTicks = 0;
+        private long _imposedGcLargeEvents = 0;
+
+        public TimeSpan ImposedGcDelayMin => new TimeSpan(_imposedGcDelayTicksMin);
+        public TimeSpan ImposedGcDelayMax => new TimeSpan(_imposedGcDelayTicksMax);
+        public TimeSpan ImposedGcDelayAverage => new TimeSpan( (long)Math.Round(_imposedGcDelayTicks / (double) _imposedGcEvents, MidpointRounding.AwayFromZero) );
+        public TimeSpan ImposedGcLargeDelayAverage => new TimeSpan( (long)Math.Round(_imposedGcLargeDelayTicks / (double) _imposedGcLargeEvents, MidpointRounding.AwayFromZero) );
+
+        public void ResetImposedGcDelayStats()
+        {
+            _imposedGcDelayTicks = 0;
+            _imposedGcDelayTicksMin = long.MaxValue;
+            _imposedGcDelayTicksMax = 0;
+            _imposedGcEvents = 0;
+        }
+
         public void MainLoop(DisplayMode mode)
         {
             if (_mainLoop == null)
@@ -128,7 +150,27 @@ namespace Robust.Client
                         }
                     }
 
-                    GC.Collect(0, GCCollectionMode.Optimized, false, false);
+                    var start = Stopwatch.GetTimestamp();
+                    GC.Collect(0, GCCollectionMode.Optimized, false, true);
+                    var fin = Stopwatch.GetTimestamp();
+                    var elapsed = fin - start;
+                    _imposedGcDelayTicks += elapsed;
+                    _imposedGcEvents += 1;
+                    if (elapsed > _imposedGcDelayTicksMax)
+                    {
+                        _imposedGcDelayTicksMax = elapsed;
+                    }
+
+                    if (elapsed < _imposedGcDelayTicksMin)
+                    {
+                        _imposedGcDelayTicksMin = elapsed;
+                    }
+
+                    if (elapsed > _imposedGcDelayTicksMin * 10)
+                    {
+                        _imposedGcLargeDelayTicks += elapsed;
+                        _imposedGcLargeEvents += 1;
+                    }
                 }
             };
             _mainLoop.Input += (sender, args) =>

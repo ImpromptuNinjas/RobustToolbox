@@ -696,6 +696,23 @@ namespace Robust.Client.Console.Commands
 
     }
 
+    internal class ResetImposedGcDelayStats : IConsoleCommand
+    {
+
+        public string Command => "reset_igc_stats";
+
+        public string Description => "Reset imposed GC delay statistics.";
+
+        public string Help => "reset_igc_stats";
+
+        public bool Execute(IDebugConsole console, params string[] args)
+        {
+            ((GameController) IoCManager.Resolve<IGameController>()).ResetImposedGcDelayStats();
+            return false;
+        }
+
+    }
+
     internal class SerializeStatsCommand : IConsoleCommand
     {
 
