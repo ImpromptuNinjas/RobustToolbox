@@ -34,7 +34,7 @@ namespace Robust.Shared.Serialization
 
         public override bool TryReadDataField<T>(string name, WithFormat<T> format, [MaybeNullWhen(false)] out T value)
         {
-            value = default;
+            value = default!;
             return false;
         }
 

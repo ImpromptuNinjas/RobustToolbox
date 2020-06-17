@@ -72,7 +72,7 @@ namespace Robust.Shared.GameObjects
                 return true;
             }
 
-            entitySystem = default;
+            entitySystem = default!;
             return false;
         }
 

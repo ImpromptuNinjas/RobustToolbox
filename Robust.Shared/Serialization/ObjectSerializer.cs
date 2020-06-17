@@ -314,7 +314,7 @@ namespace Robust.Shared.Serialization
         /// </summary>
         public virtual bool TryGetCacheData<T>(string key, [MaybeNullWhen(false)] out T data)
         {
-            data = default;
+            data = default!;
             return false;
         }
 

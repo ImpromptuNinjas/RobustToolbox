@@ -68,7 +68,7 @@ namespace Robust.Client.GameObjects
                 return true;
             }
 
-            data = default;
+            data = default!;
             return false;
         }
 

@@ -17,7 +17,7 @@ namespace Robust.Client.Interfaces.Graphics.Overlays
         T GetOverlay<T>(string id) where T : Overlay;
 
         bool TryGetOverlay(string id, [NotNullWhen(true)] out Overlay? overlay);
-        bool TryGetOverlay<T>(string id, [NotNullWhen(true)] out T? overlay) where T : Overlay;
+        bool TryGetOverlay<T>(string id, [NotNullWhen(true)] out T overlay) where T : Overlay;
 
         IEnumerable<Overlay> AllOverlays { get; }
     }

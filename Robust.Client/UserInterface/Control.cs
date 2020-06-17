@@ -74,7 +74,7 @@ namespace Robust.Client.UserInterface
         {
             get
             {
-                for (var parent = this; parent != null; parent = parent.Parent)
+                for (Control parent = this; parent != null; parent = parent.Parent!)
                 {
                     if (!parent.Visible)
                     {

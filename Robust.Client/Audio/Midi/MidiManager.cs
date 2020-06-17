@@ -143,6 +143,9 @@ namespace Robust.Client.Audio.Midi
                 _settings["midi.autoconnect"].IntValue = 1;
                 _settings["player.reset-synth"].IntValue = 0;
                 _settings["synth.midi-bank-select"].StringValue = "gm";
+                _settings["synth.chorus.active"].IntValue = 0;
+                _settings["synth.reverb.active"].IntValue = 0;
+
             }
             catch (Exception e)
             {
@@ -407,22 +410,7 @@ namespace Robust.Client.Audio.Midi
 
                 try
                 {
-                    // Fluidsynth does a LOT of tiny allocations (frankly, way too much).
-                    if (count < 1024)
-                    {
-                        // ReSharper disable once SuggestVarOrType_Elsewhere
-                        Span<byte> buffer = stackalloc byte[(int)count];
-
-                        stream.ReadExact(buffer);
-
-                        buffer.CopyTo(span);
-                    }
-                    else
-                    {
-                        var buffer = stream.ReadExact(length);
-
-                        buffer.CopyTo(span);
-                    }
+                    stream.ReadExact(span);
                 }
                 catch (EndOfStreamException)
                 {

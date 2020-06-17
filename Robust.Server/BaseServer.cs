@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime;
 using System.Threading;
 using Prometheus;
 using Robust.Server.Console;
@@ -255,6 +256,12 @@ namespace Robust.Server
                 Logger.FatalS("eng", "Could not load any Server DLL.");
                 return true;
             }
+
+            GCSettings.LatencyMode = GCLatencyMode.LowLatency;
+
+            JitAhead.Start();
+
+            //JitAhead.Thread.Join();
 
             _modLoader.BroadcastRunLevel(ModRunLevel.PreInit);
 

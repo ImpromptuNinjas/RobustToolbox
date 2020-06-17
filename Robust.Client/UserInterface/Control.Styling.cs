@@ -156,7 +156,7 @@ namespace Robust.Client.UserInterface
             {
                 _actualStylesheetCached = UserInterfaceManager.Stylesheet;
 
-                for (var p = this; p != null; p = p.Parent)
+                for (Control p = this; p != null; p = p.Parent!)
                 {
                     if (p.Stylesheet != null)
                     {
@@ -187,7 +187,7 @@ namespace Robust.Client.UserInterface
             }
 
             // Rules specific to our type.
-            for (var type = GetType(); type != typeof(Control); type = type!.BaseType)
+            for (var type = GetType()!; type != typeof(Control); type = type.BaseType!)
             {
                 if (!stylesheet.TypeSortedRules.TryGetValue(type!, out var typeRuleList))
                 {
@@ -255,7 +255,7 @@ namespace Robust.Client.UserInterface
                 return true;
             }
 
-            value = default;
+            value = default!;
             return false;
         }
 

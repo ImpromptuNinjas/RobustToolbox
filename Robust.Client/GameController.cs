@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Runtime;
 using Robust.Client.Console;
 using Robust.Client.Interfaces;
 using Robust.Client.Interfaces.GameObjects;
@@ -153,6 +154,12 @@ namespace Robust.Client
                 Logger.FatalS("eng", "Could not load any Client DLL.");
                 throw new NotSupportedException("Cannot load client without content assembly");
             }
+
+            GCSettings.LatencyMode = GCLatencyMode.LowLatency;
+
+            JitAhead.Start();
+
+            //JitAhead.Thread.Join();
 
             // Call Init in game assemblies.
             _modLoader.BroadcastRunLevel(ModRunLevel.PreInit);
@@ -312,7 +319,7 @@ namespace Robust.Client
                     throw new Exception("Unable to locate client exe");
                 }
 
-                exeDir = Path.GetDirectoryName(exeDir);
+                exeDir = Path.GetDirectoryName(exeDir)!;
                 return Path.Combine(exeDir ?? throw new InvalidOperationException(), "user_data");
             }
 

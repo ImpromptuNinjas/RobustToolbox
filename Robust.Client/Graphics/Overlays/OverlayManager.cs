@@ -63,7 +63,7 @@ namespace Robust.Client.Graphics.Overlays
             return _overlays.TryGetValue(id, out overlay);
         }
 
-        public bool TryGetOverlay<T>(string id, [NotNullWhen(true)] out T? overlay) where T : Overlay
+        public bool TryGetOverlay<T>(string id, [NotNullWhen(true)] out T overlay) where T : Overlay
         {
             if (_overlays.TryGetValue(id, out var value))
             {
@@ -71,7 +71,7 @@ namespace Robust.Client.Graphics.Overlays
                 return true;
             }
 
-            overlay = default;
+            overlay = default!;
             return false;
         }
 

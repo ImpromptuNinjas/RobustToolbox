@@ -77,7 +77,7 @@ namespace Robust.Client.GameObjects
 
             void CheckDir(Direction dir, OccluderDir oclDir)
             {
-                foreach (var neighbor in SnapGrid.GetInDir(dir))
+                foreach (var neighbor in SnapGrid!.GetInDir(dir))
                 {
                     if (neighbor.TryGetComponent(out ClientOccluderComponent comp) && comp.Enabled)
                     {

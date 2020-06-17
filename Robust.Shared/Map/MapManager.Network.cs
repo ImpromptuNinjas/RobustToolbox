@@ -65,11 +65,11 @@ namespace Robust.Shared.Map
                     grid.IsDefaultGrid));
 
             // no point sending empty collections
-            if (gridDatums.Count        == 0) gridDatums        = default;
-            if (gridDeletionsData.Count == 0) gridDeletionsData = default;
-            if (mapDeletionsData.Count  == 0) mapDeletionsData  = default;
-            if (mapCreations.Count      == 0) mapCreations      = default;
-            if (gridCreations.Count     == 0) gridCreations     = default;
+            if (gridDatums.Count        == 0) gridDatums        = default!;
+            if (gridDeletionsData.Count == 0) gridDeletionsData = default!;
+            if (mapDeletionsData.Count  == 0) mapDeletionsData  = default!;
+            if (mapCreations.Count      == 0) mapCreations      = default!;
+            if (gridCreations.Count     == 0) gridCreations     = default!;
 
             // no point even creating an empty map state if no data
             if (gridDatums == null && gridDeletionsData == null && mapDeletionsData == null && mapCreations == null && gridCreations == null)

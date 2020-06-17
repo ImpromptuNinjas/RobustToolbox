@@ -8,8 +8,10 @@ using Robust.Shared.Timing;
 
 namespace Robust.Client
 {
+
     internal partial class GameController
     {
+
         private IGameLoop _mainLoop = default!;
 
         [Dependency] private readonly IGameTiming _gameTiming = default!;
@@ -56,6 +58,7 @@ namespace Robust.Client
                 Logger.Fatal("Failed to start game controller!");
                 return;
             }
+
             gc.MainLoop(mode);
 
             Logger.Debug("Goodbye");
@@ -66,6 +69,8 @@ namespace Robust.Client
         {
             _mainLoop = gameLoop;
         }
+
+        private int _renderNoGcRegionSize = 4 * 1024;
 
         public void MainLoop(DisplayMode mode)
         {
@@ -90,7 +95,40 @@ namespace Robust.Client
                 if (_mainLoop.Running)
                 {
                     _gameTiming.CurFrame++;
-                    _clyde.Render();
+                    try
+                    {
+                        GC.TryStartNoGCRegion(_renderNoGcRegionSize);
+                        _clyde.Render();
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            GC.EndNoGCRegion();
+                        }
+                        catch (InvalidOperationException ioe)
+                        {
+                            var prev = _renderNoGcRegionSize;
+                            if (ioe.Message == "Allocated memory exceeds specified memory for NoGCRegion mode")
+                            {
+                                _renderNoGcRegionSize = Math.Min(_renderNoGcRegionSize + 4 * 1024, 2 * 1024 * 1024);
+                            }
+
+                            if (prev != _renderNoGcRegionSize)
+                            {
+                                if (_renderNoGcRegionSize < 2 * 1024 * 1024)
+                                {
+                                    _logManager.GetSawmill("nogc").Info($"Expanding No-GC Region to {_renderNoGcRegionSize / 1024}KB");
+                                }
+                                else
+                                {
+                                    _logManager.GetSawmill("nogc").Warning($"Expanding No-GC Region to {_renderNoGcRegionSize / 1024}KB and capped");
+                                }
+                            }
+                        }
+                    }
+
+                    GC.Collect(0, GCCollectionMode.Optimized, false, false);
                 }
             };
             _mainLoop.Input += (sender, args) =>
@@ -112,5 +150,7 @@ namespace Robust.Client
             // set GameLoop.Running to false to return from this function.
             _mainLoop.Run();
         }
+
     }
+
 }

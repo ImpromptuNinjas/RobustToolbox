@@ -237,11 +237,11 @@ namespace Robust.Client.UserInterface
             var countTypes = 0;
             if (ElementType != null)
             {
-                var type = ElementType;
+                var type = ElementType!;
                 while (type != typeof(Control))
                 {
                     DebugTools.AssertNotNull(type);
-                    type = type!.BaseType;
+                    type = type!.BaseType!;
                     countTypes += 1;
                 }
             }

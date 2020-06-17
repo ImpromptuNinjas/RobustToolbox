@@ -25,6 +25,7 @@ namespace Robust.Shared.Utility
         /// <param name="condition">Condition that must be true.</param>
         [Conditional("DEBUG")]
         [AssertionMethod]
+        [ContractAnnotation("false => halt")]
         public static void Assert([AssertionCondition(AssertionConditionType.IS_TRUE)]
             bool condition)
         {
@@ -40,6 +41,7 @@ namespace Robust.Shared.Utility
         /// <param name="message">Exception message.</param>
         [Conditional("DEBUG")]
         [AssertionMethod]
+        [ContractAnnotation("condition:false => halt")]
         public static void Assert([AssertionCondition(AssertionConditionType.IS_TRUE)]
             bool condition, string message)
         {
@@ -54,6 +56,7 @@ namespace Robust.Shared.Utility
         /// <param name="arg">Condition that must be true.</param>
         [Conditional("DEBUG")]
         [AssertionMethod]
+        [ContractAnnotation("null => halt")]
         public static void AssertNotNull([AssertionCondition(AssertionConditionType.IS_NOT_NULL)]
             object? arg)
         {
@@ -70,6 +73,7 @@ namespace Robust.Shared.Utility
         /// <param name="arg">Condition that must be true.</param>
         [Conditional("DEBUG")]
         [AssertionMethod]
+        [ContractAnnotation("notnull => halt")]
         public static void AssertNull([AssertionCondition(AssertionConditionType.IS_NULL)]
             object? arg)
         {

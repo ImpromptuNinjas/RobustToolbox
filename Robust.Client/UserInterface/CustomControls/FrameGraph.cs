@@ -2,6 +2,7 @@
 using Robust.Shared.Interfaces.Timing;
 using Robust.Shared.Maths;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Robust.Client.UserInterface.CustomControls
 {
@@ -33,6 +34,8 @@ namespace Robust.Client.UserInterface.CustomControls
         // We keep track of frame times in a ring buffer.
         private readonly float[] _frameTimes = new float[TrackedFrames];
 
+        private readonly bool[] _frameGc = new bool[TrackedFrames];
+
         // Position of the last frame in the ring buffer.
         private int _frameIndex;
 
@@ -41,6 +44,13 @@ namespace Robust.Client.UserInterface.CustomControls
             _gameTiming = gameTiming;
 
             SizeFlagsHorizontal = SizeFlags.None;
+
+            GcNotifier.GarbageCollected += OnGarbageCollected;
+        }
+
+        private void OnGarbageCollected()
+        {
+            _frameGc[_frameIndex] = true;
         }
 
         protected override Vector2 CalculateMinimumSize()
@@ -52,6 +62,7 @@ namespace Robust.Client.UserInterface.CustomControls
         {
             _frameTimes[_frameIndex] = (float)_gameTiming.RealFrameTime.TotalSeconds;
             _frameIndex = (_frameIndex + 1) % TrackedFrames;
+            _frameGc[_frameIndex] = false;
         }
 
         protected internal override void Draw(DrawingHandleScreen handle)
@@ -62,6 +73,7 @@ namespace Robust.Client.UserInterface.CustomControls
             {
                 var currentFrameIndex = MathHelper.Mod(_frameIndex - 1 - i, TrackedFrames);
                 var frameTime = _frameTimes[currentFrameIndex];
+                var frameGc = _frameGc[currentFrameIndex];
                 var x = FrameWidth * UserInterfaceManager.UIScale * (TrackedFrames - 1 - i);
                 var frameHeight = FrameHeight * (frameTime / (1f / TargetFrameRate));
                 var rect = new UIBox2(x, PixelHeight - frameHeight, x + FrameWidth * UserInterfaceManager.UIScale, PixelHeight);
@@ -77,8 +89,13 @@ namespace Robust.Client.UserInterface.CustomControls
                 }
                 else
                 {
-                    color = Color.Lime;
+                    color = Color.Green;
                 }
+                if (frameGc)
+                {
+                    color = color.WithBlue(128);
+                }
+
 
                 handle.DrawRect(rect, color);
             }

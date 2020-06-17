@@ -285,7 +285,7 @@ namespace Robust.Shared.Utility
 
                 var item = heap[itemIndex];
                 var left = heap[leftIndex];
-                var right = hasRight ? heap[rightIndex] : default(T);
+                var right = hasRight ? heap[rightIndex] : default!;
 
                 // if item is greater than children - heap is fine, exit
                 // ReSharper disable once RedundantTypeArgumentsOfMethod

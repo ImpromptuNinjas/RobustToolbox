@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime;
 using Robust.Client.Graphics.Drawing;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Maths;
@@ -54,10 +55,12 @@ namespace Robust.Client.UserInterface.CustomControls
             var allocated = GC.GetTotalMemory(false);
             LogAllocSize(allocated);
             var info = GC.GetGCMemoryInfo();
-            return $@"Last Heap Size: {FormatBytes(info.HeapSizeBytes)}
+            return $@"{(GCSettings.IsServerGC ? "Server" : "Workstation")} GC, {GCSettings.LatencyMode}
+Last Heap Size: {FormatBytes(info.HeapSizeBytes)}
 Total Allocated: {FormatBytes(allocated)}
 Collections: {GC.CollectionCount(0)} {GC.CollectionCount(1)} {GC.CollectionCount(2)}
-Alloc Rate: {FormatBytes(CalculateAllocRate())} / frame";
+Alloc Rate: {FormatBytes(CalculateAllocRate())} / frame
+Fragmented: {FormatBytes(info.FragmentedBytes)}";
 #else
             return "Memory information needs .NET Core";
 #endif

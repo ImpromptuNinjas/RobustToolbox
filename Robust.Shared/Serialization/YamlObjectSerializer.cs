@@ -330,7 +330,7 @@ namespace Robust.Shared.Serialization
                     return true;
                 }
             }
-            value = default;
+            value = default!;
             return false;
         }
 
@@ -356,7 +356,7 @@ namespace Robust.Shared.Serialization
                     return true;
                 }
             }
-            value = default;
+            value = default!;
             return false;
         }
 
@@ -427,7 +427,7 @@ namespace Robust.Shared.Serialization
                 return true;
             }
 
-            data = default;
+            data = default!;
             return false;
         }
 
@@ -833,7 +833,7 @@ namespace Robust.Shared.Serialization
 
             public virtual bool TryGetCachedField<T>(string field, [MaybeNullWhen(false)] out T value)
             {
-                value = default;
+                value = default!;
                 return false;
             }
 

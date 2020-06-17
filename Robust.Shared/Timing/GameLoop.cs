@@ -143,9 +143,10 @@ namespace Robust.Shared.Timing
                     _lastTick = _timing.RealTime - maxTime;
 
                     // announce we are falling behind
-                    if ((_timing.RealTime - _lastKeepUp).TotalSeconds >= 15.0)
+                    var diffSecs = (_timing.RealTime - _lastKeepUp).TotalSeconds;
+                    if (diffSecs >= 15.0)
                     {
-                        Logger.WarningS("eng", "MainLoop: Cannot keep up!");
+                        Logger.WarningS("eng", $"MainLoop: Cannot keep up! {diffSecs - 15.0:F3}s");
                         _lastKeepUp = _timing.RealTime;
                     }
                 }

@@ -17,12 +17,12 @@ namespace Robust.Client.ResourceManagement
 
         private readonly Dictionary<Type, BaseResource> _fallbacks = new Dictionary<Type, BaseResource>();
 
-        public T GetResource<T>(string path, bool useFallback = true) where T : BaseResource, new()
+        public T GetResource<T>(string path, bool useFallback = true) where T : BaseResource?, new()
         {
             return GetResource<T>(new ResourcePath(path), useFallback);
         }
 
-        public T GetResource<T>(ResourcePath path, bool useFallback = true) where T : BaseResource, new()
+        public T GetResource<T>(ResourcePath path, bool useFallback = true) where T : BaseResource?, new()
         {
             var cache = GetTypeDict<T>();
             if (cache.TryGetValue(path, out var cached))
@@ -54,12 +54,12 @@ namespace Robust.Client.ResourceManagement
             }
         }
 
-        public bool TryGetResource<T>(string path, [NotNullWhen(true)] out T? resource) where T : BaseResource, new()
+        public bool TryGetResource<T>(string path, [NotNullWhen(true)] out T resource) where T : BaseResource?, new()
         {
             return TryGetResource(new ResourcePath(path), out resource);
         }
 
-        public bool TryGetResource<T>(ResourcePath path, [NotNullWhen(true)] out T? resource) where T : BaseResource, new()
+        public bool TryGetResource<T>(ResourcePath path, [NotNullWhen(true)] out T resource) where T : BaseResource?, new()
         {
             var cache = GetTypeDict<T>();
             if (cache.TryGetValue(path, out var cached))
@@ -68,27 +68,27 @@ namespace Robust.Client.ResourceManagement
                 return true;
             }
 
-            var _resource = new T();
+            var loaded = new T();
             try
             {
-                _resource.Load(this, path);
-                resource = _resource;
+                loaded.Load(this, path);
+                resource = loaded;
                 cache[path] = resource;
                 return true;
             }
             catch
             {
-                resource = null;
+                resource = null!;
                 return false;
             }
         }
 
-        public void ReloadResource<T>(string path) where T : BaseResource, new()
+        public void ReloadResource<T>(string path) where T : BaseResource?, new()
         {
             ReloadResource<T>(new ResourcePath(path));
         }
 
-        public void ReloadResource<T>(ResourcePath path) where T : BaseResource, new()
+        public void ReloadResource<T>(ResourcePath path) where T : BaseResource?, new()
         {
             var cache = GetTypeDict<T>();
 
@@ -113,22 +113,22 @@ namespace Robust.Client.ResourceManagement
             return HasResource<T>(new ResourcePath(path));
         }
 
-        public bool HasResource<T>(ResourcePath path) where T : BaseResource, new()
+        public bool HasResource<T>(ResourcePath path) where T : BaseResource?, new()
         {
             return TryGetResource<T>(path, out var _);
         }
 
-        public void CacheResource<T>(string path, T resource) where T : BaseResource, new()
+        public void CacheResource<T>(string path, T resource) where T : BaseResource?, new()
         {
             CacheResource(new ResourcePath(path), resource);
         }
 
-        public void CacheResource<T>(ResourcePath path, T resource) where T : BaseResource, new()
+        public void CacheResource<T>(ResourcePath path, T resource) where T : BaseResource?, new()
         {
-            GetTypeDict<T>()[path] = resource;
+            GetTypeDict<T>()[path] = resource!;
         }
 
-        public T GetFallback<T>() where T : BaseResource, new()
+        public T GetFallback<T>() where T : BaseResource?, new()
         {
             if (_fallbacks.TryGetValue(typeof(T), out var fallback))
             {
@@ -142,11 +142,11 @@ namespace Robust.Client.ResourceManagement
             }
 
             fallback = GetResource<T>(res.Fallback, useFallback: false);
-            _fallbacks.Add(typeof(T), fallback);
-            return (T) fallback;
+            _fallbacks.Add(typeof(T), fallback!);
+            return (T) fallback!;
         }
 
-        public IEnumerable<KeyValuePair<ResourcePath, T>> GetAllResources<T>() where T : BaseResource, new()
+        public IEnumerable<KeyValuePair<ResourcePath, T>> GetAllResources<T>() where T : BaseResource?, new()
         {
             return GetTypeDict<T>().Select(p => new KeyValuePair<ResourcePath, T>(p.Key, (T) p.Value));
         }

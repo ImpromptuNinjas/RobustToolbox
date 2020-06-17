@@ -155,7 +155,7 @@ namespace Robust.Shared.Network
                     return;
                 }
 
-                secondPeer = CreatePeerForIp(second);
+                secondPeer = CreatePeerForIp(second!);
                 secondConnection = secondPeer.Connect(new IPEndPoint(second, port));
 
                 secondReason = await AwaitNonInitStatusChange(secondConnection, cancellationToken);
