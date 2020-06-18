@@ -84,20 +84,29 @@ namespace Robust.Client
         private long _imposedGcLargeDelayTicks = 0;
         private long _imposedGcLargeEvents = 0;
 
+        private static readonly TimeSpan SixtiethOfASecond = new TimeSpan((long) (Stopwatch.Frequency * (1 / 60d)));
+
         public TimeSpan ImposedGcDelayLatest => new TimeSpan(_imposedGcLatestDelayTicks);
         public TimeSpan ImposedGcDelayMin => new TimeSpan(_imposedGcDelayTicksMin);
         public TimeSpan ImposedGcDelayMax => new TimeSpan(_imposedGcDelayTicksMax);
         public TimeSpan ImposedGcDelayAverage => new TimeSpan( (long)Math.Round(_imposedGcDelayTicks / (double) _imposedGcEvents, MidpointRounding.AwayFromZero) );
         public TimeSpan ImposedGcLargeDelayAverage => new TimeSpan( (long)Math.Round(_imposedGcLargeDelayTicks / (double) _imposedGcLargeEvents, MidpointRounding.AwayFromZero) );
 
+        public long ImposedGcEvents => _imposedGcEvents;
+        public TimeSpan ImposedGcDelayTotal => new TimeSpan( _imposedGcDelayTicks );
+
         public void ResetImposedGcDelayStats()
         {
             _imposedGcEvents = 0;
             _imposedGcDelayTicks = 0;
+
             _imposedGcDelayTicksMin = long.MaxValue;
             _imposedGcDelayTicksMax = 0;
             _imposedGcLargeEvents = 0;
             _imposedGcLargeDelayTicks = 0;
+
+            _imposedGcLargeDelayTicks = 0;
+            _imposedGcLargeEvents = 0;
         }
 
         public void MainLoop(DisplayMode mode)
@@ -156,30 +165,7 @@ namespace Robust.Client
                         }
                     }
 
-                    var start = Stopwatch.GetTimestamp();
-                    GC.Collect(0, GCCollectionMode.Optimized, false, true);
-                    var fin = Stopwatch.GetTimestamp();
-                    var elapsed = fin - start;
-
-                    _imposedGcLatestDelayTicks = elapsed;
-
-                    _imposedGcDelayTicks += elapsed;
-                    _imposedGcEvents += 1;
-                    if (elapsed > _imposedGcDelayTicksMax)
-                    {
-                        _imposedGcDelayTicksMax = elapsed;
-                    }
-
-                    if (elapsed < _imposedGcDelayTicksMin)
-                    {
-                        _imposedGcDelayTicksMin = elapsed;
-                    }
-
-                    if (elapsed > Stopwatch.Frequency / 100_000)
-                    {
-                        _imposedGcLargeDelayTicks += elapsed;
-                        _imposedGcLargeEvents += 1;
-                    }
+                    OptimisticGc();
                 }
             };
             _mainLoop.Input += (sender, args) =>
@@ -200,6 +186,48 @@ namespace Robust.Client
 
             // set GameLoop.Running to false to return from this function.
             _mainLoop.Run();
+        }
+
+        private void OptimisticGc()
+        {
+            var memInfo = GC.GetGCMemoryInfo();
+            var allocated = GC.GetTotalMemory(false);
+
+            var fasterThan60Fps = _gameTiming.RealFrameTimeAvg <= SixtiethOfASecond;
+            if ((memInfo.FragmentedBytes > (int) (2 * 1024 * 1024)
+                    || allocated >= memInfo.HeapSizeBytes * 1.1)
+                && fasterThan60Fps)
+            {
+                var start = Stopwatch.GetTimestamp();
+                GC.Collect(0, GCCollectionMode.Optimized, false, true);
+                var fin = Stopwatch.GetTimestamp();
+                var elapsed = fin - start;
+
+                _imposedGcLatestDelayTicks = elapsed;
+
+                _imposedGcDelayTicks += elapsed;
+                _imposedGcEvents += 1;
+                var avg = _imposedGcDelayTicks / _imposedGcEvents;
+                if (elapsed > _imposedGcDelayTicksMax)
+                {
+                    _imposedGcDelayTicksMax = elapsed;
+                }
+
+                if (elapsed < _imposedGcDelayTicksMin)
+                {
+                    _imposedGcDelayTicksMin = elapsed;
+                }
+
+                if (elapsed > avg / 10)
+                {
+                    _imposedGcLargeDelayTicks += elapsed;
+                    _imposedGcLargeEvents += 1;
+                }
+            }
+            else
+            {
+                _imposedGcLatestDelayTicks = 0;
+            }
         }
 
     }
