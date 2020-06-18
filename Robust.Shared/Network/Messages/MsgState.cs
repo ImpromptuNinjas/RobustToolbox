@@ -33,15 +33,16 @@ namespace Robust.Shared.Network.Messages
 
         private bool _hasWritten;
 
-        public override void ReadFromBuffer(NetIncomingMessage buffer)
+        public override unsafe void ReadFromBuffer(NetIncomingMessage buffer)
         {
             MsgSize = buffer.LengthBytes;
             var length = buffer.ReadVariableInt32();
-            var stateData = buffer.ReadBytes(length);
-            using (var stateStream = new MemoryStream(stateData))
+            var bytes = buffer.ReadBytes(stackalloc byte[length]);
+            fixed(byte * p = bytes)
             {
+                using var stream = new UnmanagedMemoryStream(p,bytes.Length, bytes.Length, FileAccess.Read);
                 var serializer = IoCManager.Resolve<IRobustSerializer>();
-                State = serializer.Deserialize<GameState>(stateStream);
+                State = serializer.Deserialize<GameState>(stream);
             }
 
             State.PayloadSize = length;

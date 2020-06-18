@@ -14,17 +14,17 @@ namespace Lidgren.Network
 		private static readonly Dictionary<Type, MethodInfo> s_readMethods;
 		private static readonly Dictionary<Type, MethodInfo> s_writeMethods;
 
-		internal byte[] m_data;
+		internal byte[] m_buf;
+		internal Span<byte> m_data => m_buf;
 		internal int m_bitLength;
 		internal int m_readPosition;
 
 		/// <summary>
 		/// Gets or sets the internal data buffer
 		/// </summary>
-		public byte[] Data
+		public byte[] Buffer
 		{
-			get { return m_data; }
-			set { m_data = value; }
+			get { return m_buf; }
 		}
 
 		/// <summary>

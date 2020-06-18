@@ -29,7 +29,7 @@ namespace Robust.Shared.Network.Messages
 
         #endregion
 
-        public override void ReadFromBuffer(NetIncomingMessage buffer)
+        public override unsafe void ReadFromBuffer(NetIncomingMessage buffer)
         {
             ScriptSession = buffer.ReadInt32();
             WasComplete = buffer.ReadBoolean();
@@ -39,11 +39,13 @@ namespace Robust.Shared.Network.Messages
                 var serializer = IoCManager.Resolve<IRobustSerializer>();
 
                 var length = buffer.ReadVariableInt32();
-                var stateData = buffer.ReadBytes(length);
-
-                using var memoryStream = new MemoryStream(stateData);
-                Echo = serializer.Deserialize<FormattedMessage>(memoryStream);
-                Response = serializer.Deserialize<FormattedMessage>(memoryStream);
+                var bytes = buffer.ReadBytes(stackalloc byte[length]);
+                fixed (byte* p = bytes)
+                {
+                    using var stream = new UnmanagedMemoryStream(p, bytes.Length, bytes.Length, FileAccess.Read);
+                    Echo = serializer.Deserialize<FormattedMessage>(stream);
+                    Response = serializer.Deserialize<FormattedMessage>(stream);
+                }
             }
         }
 

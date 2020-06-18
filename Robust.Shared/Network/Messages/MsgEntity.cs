@@ -31,7 +31,7 @@ namespace Robust.Shared.Network.Messages
         public uint Sequence { get; set; }
         public GameTick SourceTick { get; set; }
 
-        public override void ReadFromBuffer(NetIncomingMessage buffer)
+        public override unsafe void ReadFromBuffer(NetIncomingMessage buffer)
         {
             Type = (EntityMessageType)buffer.ReadByte();
             SourceTick = buffer.ReadGameTick();
@@ -42,9 +42,11 @@ namespace Robust.Shared.Network.Messages
                 case EntityMessageType.SystemMessage:
                 {
                     var serializer = IoCManager.Resolve<IRobustSerializer>();
-                    int messageLength = buffer.ReadInt32();
-                    using (var stream = new MemoryStream(buffer.ReadBytes(messageLength)))
+                    int length = buffer.ReadInt32();
+                    var bytes = buffer.ReadBytes(stackalloc byte[length]);
+                    fixed (byte* p = bytes)
                     {
+                        using var stream = new UnmanagedMemoryStream(p, bytes.Length, bytes.Length, FileAccess.Read);
                         SystemMessage = serializer.Deserialize<EntitySystemMessage>(stream);
                     }
                 }
@@ -56,9 +58,11 @@ namespace Robust.Shared.Network.Messages
                     NetId = buffer.ReadUInt32();
 
                     var serializer = IoCManager.Resolve<IRobustSerializer>();
-                    int messageLength = buffer.ReadInt32();
-                    using (var stream = new MemoryStream(buffer.ReadBytes(messageLength)))
+                    int length = buffer.ReadInt32();
+                    var bytes = buffer.ReadBytes(stackalloc byte[length]);
+                    fixed (byte* p = bytes)
                     {
+                        using var stream = new UnmanagedMemoryStream(p, bytes.Length, bytes.Length, FileAccess.Read);
                         ComponentMessage = serializer.Deserialize<ComponentMessage>(stream);
                     }
                 }
@@ -188,6 +192,7 @@ namespace Robust.Shared.Network.Messages
             }
         }
 
+#if false
         private List<object> UnPackParams(NetIncomingMessage message)
         {
             var messageParams = new List<object>();
@@ -236,12 +241,15 @@ namespace Robust.Shared.Network.Messages
                         break;
                     case NetworkDataType.d_byteArray:
                         int length = message.ReadInt32();
-                        messageParams.Add(message.ReadBytes(length));
+                        var buf = new byte[length];
+                        message.ReadBytes(buf);
+                        messageParams.Add(buf)
                         break;
                 }
             }
             return messageParams;
         }
+#endif
 
         #endregion Parameter Packing
 

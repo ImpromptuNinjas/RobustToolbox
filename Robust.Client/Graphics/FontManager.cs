@@ -217,7 +217,7 @@ namespace Robust.Client.Graphics
                 for (var x = 0; x < bitmap.Width; x++)
                 {
                     var byteIndex = y * bitmap.Pitch + (x / 8);
-                    var bitIndex = x % 8;
+                    var bitIndex = x & 7;
 
                     var bit = (span[byteIndex] & (1 << (7 - bitIndex))) != 0;
                     bitmapImage[x, y] = new A8(bit ? byte.MaxValue : byte.MinValue);

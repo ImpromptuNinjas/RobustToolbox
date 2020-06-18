@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 
 namespace Lidgren.Network
@@ -6,10 +7,11 @@ namespace Lidgren.Network
 	/// <summary>
 	/// Base for a non-threadsafe encryption class
 	/// </summary>
-	public abstract class NetBlockEncryptionBase : NetEncryption
+	public abstract class NetBlockEncryptionBase : NetEncryption, IDisposable
 	{
 		// temporary space for one block to avoid reallocating every time
-		private byte[] m_tmp;
+		private byte[] m_tmpBuf;
+		private Span<byte> m_tmp => new Span<byte>(m_tmpBuf);
 
 		/// <summary>
 		/// Block size in bytes for this cipher
@@ -22,7 +24,8 @@ namespace Lidgren.Network
 		public NetBlockEncryptionBase(NetPeer peer)
 			: base(peer)
 		{
-			m_tmp = new byte[BlockSize];
+			// ReSharper disable once VirtualMemberCallInConstructor
+			m_tmpBuf = ArrayPool<byte>.Shared.Rent(BlockSize);
 		}
 
 		/// <summary>
@@ -33,16 +36,18 @@ namespace Lidgren.Network
 			int payloadBitLength = msg.LengthBits;
 			int numBytes = msg.LengthBytes;
 			int blockSize = BlockSize;
-			int numBlocks = (int)Math.Ceiling((double)numBytes / (double)blockSize);
+			int numBlocks = (int)Math.Ceiling(numBytes / (double)blockSize);
 			int dstSize = numBlocks * blockSize;
 
 			msg.EnsureBufferSize(dstSize * 8 + (4 * 8)); // add 4 bytes for payload length at end
 			msg.LengthBits = dstSize * 8; // length will automatically adjust +4 bytes when payload length is written
 
+			var dataSpan = msg.m_data;
 			for(int i=0;i<numBlocks;i++)
 			{
-				EncryptBlock(msg.m_data, (i * blockSize), m_tmp);
-				Buffer.BlockCopy(m_tmp, 0, msg.m_data, (i * blockSize), m_tmp.Length);
+				EncryptBlock(dataSpan, (i * blockSize), m_tmp);
+				//Buffer.BlockCopy(m_tmp, 0, dataSpan, (i * blockSize), m_tmp.Length);
+				m_tmp.CopyTo(dataSpan.Slice(i * blockSize, m_tmp.Length));
 			}
 
 			// add true payload length last
@@ -64,14 +69,16 @@ namespace Lidgren.Network
 			if (numBlocks * blockSize != numEncryptedBytes)
 				return false;
 
+			var dataSpan = msg.m_data;
 			for (int i = 0; i < numBlocks; i++)
 			{
-				DecryptBlock(msg.m_data, (i * blockSize), m_tmp);
-				Buffer.BlockCopy(m_tmp, 0, msg.m_data, (i * blockSize), m_tmp.Length);
+				DecryptBlock(dataSpan, (i * blockSize), m_tmp);
+				//Buffer.BlockCopy(m_tmp, 0, dataSpan, (i * blockSize), m_tmp.Length);
+				m_tmp.CopyTo(dataSpan.Slice(i * blockSize, m_tmp.Length));
 			}
 
 			// read 32 bits of true payload length
-			uint realSize = NetBitWriter.ReadUInt32(msg.m_data, 32, (numEncryptedBytes * 8));
+			uint realSize = NetBitWriter.ReadUInt32(dataSpan, 32, (numEncryptedBytes * 8));
 			msg.m_bitLength = (int)realSize;
 			return true;
 		}
@@ -79,11 +86,18 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Encrypt a block of bytes
 		/// </summary>
-		protected abstract void EncryptBlock(byte[] source, int sourceOffset, byte[] destination);
+		protected abstract void EncryptBlock(ReadOnlySpan<byte> source, int sourceOffset, Span<byte> destination);
 
 		/// <summary>
 		/// Decrypt a block of bytes
 		/// </summary>
-		protected abstract void DecryptBlock(byte[] source, int sourceOffset, byte[] destination);
+		protected abstract void DecryptBlock(ReadOnlySpan<byte> source, int sourceOffset, Span<byte> destination);
+
+		public void Dispose()
+		{
+			ArrayPool<byte>.Shared.Return(m_tmpBuf);
+			m_tmpBuf = null;
+		}
+
 	}
 }

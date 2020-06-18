@@ -36,23 +36,25 @@ namespace Robust.Shared.Network.Messages
         /// </summary>
         public object Value { get; set; }
 
-        public override void ReadFromBuffer(NetIncomingMessage buffer)
+        public override unsafe void ReadFromBuffer(NetIncomingMessage buffer)
         {
             var serializer = IoCManager.Resolve<IRobustSerializer>();
             SessionId = buffer.ReadUInt32();
             {
                 var length = buffer.ReadInt32();
-                var bytes = buffer.ReadBytes(length);
-                using (var stream = new MemoryStream(bytes))
+                var bytes = buffer.ReadBytes(stackalloc byte[length]);
+                fixed(byte * p = bytes)
                 {
+                    using var stream = new UnmanagedMemoryStream(p,bytes.Length, bytes.Length, FileAccess.Read);
                     PropertyIndex = serializer.Deserialize<object[]>(stream);
                 }
             }
             {
                 var length = buffer.ReadInt32();
-                var bytes = buffer.ReadBytes(length);
-                using (var stream = new MemoryStream(bytes))
+                var bytes = buffer.ReadBytes(stackalloc byte[length]);
+                fixed(byte * p = bytes)
                 {
+                    using var stream = new UnmanagedMemoryStream(p,bytes.Length, bytes.Length, FileAccess.Read);
                     Value = serializer.Deserialize(stream);
                 }
             }

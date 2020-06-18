@@ -102,12 +102,12 @@ namespace Robust.Client.Utility
 
         public static Direction TurnCw(this Direction dir)
         {
-            return (Direction)(((int)dir - 1) % 8);
+            return (Direction)(((int)dir - 1) & 7);
         }
 
         public static Direction TurnCcw(this Direction dir)
         {
-            return (Direction)(((int)dir + 1) % 8);
+            return (Direction)(((int)dir + 1) & 7);
         }
     }
 }
