@@ -11,22 +11,22 @@ using System.Threading;
 namespace Lidgren.Network
 {
 
-	public static partial class NativeSocket
+	public static partial class NativeSockets
 	{
 
-		const int SockAddrStorageSize = 128; // sockaddr_storage
+		private const int SockAddrStorageSize = 128; // sockaddr_storage
 
-#if !__ANDROID__ && !__CONSTRAINED__ && !WINDOWS_RUNTIME && !UNITY_STANDALONE_LINUX
-		private const bool IsWindows = true;
-#else
-		private  const bool IsWindows = false;
-#endif
+		private static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-		[DllImport(IsWindows ? "ws2_32" : "libc", EntryPoint = "sendto")]
-		internal static extern unsafe int _SendTo(int socket, byte* buf, int len, int flags, void* to, int toLen);
+		internal static unsafe int _SendTo(int socket, byte* buf, int len, int flags, void* to, int toLen)
+			=> IsWindows
+				? WindowsSockets.SendTo(socket, buf, len, flags, to, toLen)
+				: PosixSockets.SendTo(socket, buf, len, flags, to, toLen);
 
-		[DllImport(IsWindows ? "ws2_32" : "libc", EntryPoint = "recvfrom")]
-		internal static extern unsafe int _RecvFrom(int socket, byte* buf, int len, int flags, void* from, int* fromLen);
+		internal static unsafe int _RecvFrom(int socket, byte* buf, int len, int flags, void* from, int* fromLen)
+			=> IsWindows
+				? WindowsSockets.RecvFrom(socket, buf, len, flags, from, fromLen)
+				: PosixSockets.RecvFrom(socket, buf, len, flags, from, fromLen);
 
 		public static int GetError(Socket socket)
 			=> (int) socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Error);
@@ -167,6 +167,28 @@ namespace Lidgren.Network
 
 			from = new IPEndPoint(ip, port);
 		}
+
+	}
+
+	internal static class PosixSockets
+	{
+
+		[DllImport("libc", EntryPoint = "sendto")]
+		internal static extern unsafe int SendTo(int socket, byte* buf, int len, int flags, void* to, int toLen);
+
+		[DllImport("libc", EntryPoint = "recvfrom")]
+		internal static extern unsafe int RecvFrom(int socket, byte* buf, int len, int flags, void* from, int* fromLen);
+
+	}
+
+	internal static class WindowsSockets
+	{
+
+		[DllImport("ws2_32", EntryPoint = "sendto")]
+		internal static extern unsafe int SendTo(int socket, byte* buf, int len, int flags, void* to, int toLen);
+
+		[DllImport("ws2_32", EntryPoint = "recvfrom")]
+		internal static extern unsafe int RecvFrom(int socket, byte* buf, int len, int flags, void* from, int* fromLen);
 
 	}
 

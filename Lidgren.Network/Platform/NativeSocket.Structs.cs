@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 #pragma warning disable 649
 namespace Lidgren.Network {
 
-  public static partial class NativeSocket {
+  public static partial class NativeSockets {
 
     [SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Local")]
     [StructLayout(LayoutKind.Sequential, Size = SockAddrStorageSize)]

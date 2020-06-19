@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Robust.Shared.Utility
 {
@@ -134,6 +135,24 @@ namespace Robust.Shared.Utility
             }
 
             return array;
+        }
+
+        /// <summary>
+        /// Adds a range of items to a set.
+        /// </summary>
+        /// <param name="set">The set.</param>
+        /// <param name="items">The items to add.</param>
+        /// <typeparam name="T">The common type of the set and items.</typeparam>
+        /// <returns><c>true</c> if any item was added, otherwise <c>false</c>.</returns>
+        public static bool AddRange<T>(this ISet<T> set, IEnumerable<T> items)
+        {
+            var result = false;
+            foreach (var item in items)
+            {
+                result |= set.Add(item);
+            }
+
+            return result;
         }
     }
 }
